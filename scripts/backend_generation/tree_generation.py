@@ -66,6 +66,8 @@ class SourceTransformer(ast.NodeTransformer):
         if node.names[0].name == _backend_reference:
             self.generic_visit(node)
             return
+        elif node.names[0].name != _backend_reference:
+            pass
         self.generic_visit(node)
         return node
 
@@ -83,19 +85,23 @@ class SourceTransformer(ast.NodeTransformer):
         return node
 
     def visit_Attribute(self, node: ast.Attribute):
-        str_repr = self._get_full_name(node).strip()
+        stri = self._get_full_name(node)
+        str_repr = stri.strip()
         str_repr_without_package = str_repr.partition(".")[-1]
         if str_repr in self.type_map.keys():
-            new_node = ast.parse(self.type_map[str_repr].full_name())
+            str_map = self.type_map[str_repr]
+            new_node = ast.parse(str_map.full_name())
             node = new_node.body[0].value
-            namespace = self.type_map[str_repr].namespace
+            namespace = str_map.namespace
             if namespace != "":
                 self.registered_imports.add(namespace)
         elif str_repr_without_package in self.type_map.keys():
             new_node = ast.parse(self.type_map[str_repr_without_package].full_name())
             node = new_node.body[0].value
             namespace = self.type_map[str_repr_without_package].namespace
-            if namespace != "":
+            if namespace == "":
+                pass
+            else:
                 self.registered_imports.add(namespace)
         self.generic_visit(node)
         return node

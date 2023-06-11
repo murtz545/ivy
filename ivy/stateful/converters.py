@@ -143,7 +143,22 @@ class ModuleConverters:
                 else:
                     ret_flat_map[new_k] = v
             return FlatMapping(ret_flat_map)
-
+        
+        def _hi_flat_map_to_dict(hi_flat_map):
+            ret_dict = dict()
+            chk = False
+            for key, value in hi_flat_map.items():
+                new_k = key.replace("/", "|")
+                if not isinstance(value, FlatMapping):
+                    ret_dict[new_k] = value
+                else:
+                    hi_dict = _hi_flat_map_to_dict(value)
+                    ret_dict[new_k] = _hk_flat_map_to_dict(value)
+                if chk != False :
+                    return hi_dict
+                
+            return ret_dict
+        
         class HaikuIvyModule(ivy.Module):
             def __init__(
                 self, *args, params_hk, native_module, device, devices, **kwargs
